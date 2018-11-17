@@ -59,7 +59,7 @@ close.set_xlabel("Date")
 close.set_ylabel("Stock Prices")
 close.set_title("Raw Time-series")
 plt.show()
-
+print(type(close))
 #trendline    #how to solve it
 
 #date_list = [date for date in data['Date']]
