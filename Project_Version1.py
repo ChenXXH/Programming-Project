@@ -1,23 +1,42 @@
 import pandas as pd
-import numpy as np
-
-from pandas_datareader import data as pdr 
+import pandas_datareader as pdr
+import matplotlib.pyplot as plt
+from scipy import stats
+import datetime as dt
+import time
 import fix_yahoo_finance as yf 
+import numpy as np
 
 yf.pdr_override()
 
-data =  pdr.get_data_yahoo("GOOG", start = "2018-01-01", end = "2018-06-30")
+#input data
+df = pdr.get_data_yahoo("MSFT", start = "2018-01-01", end = "2018-6-30")
+print(df.head())
+close = pd.DataFrame(df.Close)
 
-df["ID"] = " "
+
+# did not print out the type of Date
+
+df["ID"] = [i for i in range(len(df.Close))]
 df.reset_index(inplace = True)
 df.set_index("ID", inplace = True)
 
 data = df[["Date", "Close"]]
-x = data["Date"]
+print(data.head())
+
+#datetime transfer
+	
+ts_list = []
+for date in data["Date"]:
+	timestamp = time.mktime(date.timetuple())
+	ts_list.append(timestamp)
+
+data["Timestamp"] = ts_list
+
+print(data.head())
+
+x = data["Timestamp"]
 y = data["Close"]
-print(type(data.Date))
-
-
 #descriptive
 def describe_stock(y): 
 	mean = y.mean()
@@ -35,8 +54,26 @@ def describe_stock(y):
 
 #raw time-series
 
-close.Close.plot()
+close = close.plot()
+close.set_xlabel("Date")
+close.set_ylabel("Stock Prices")
+close.set_title("Raw Time-series")
 plt.show()
+
+#trendline    #how to solve it
+
+#date_list = [date for date in data['Date']]
+
+plot = plt.plot(x, y)
+print(type(plot))     #type: list(), then how to change x/y axis??
+z = np.polyfit(x, y, 1)
+p = np.poly1d(z)
+#plot.set_xticklabels(date_list)   I want to change x-axis, but this method won't work on my computer
+plt.plot(x, p(x), "r")
+plt.show()
+
+#--------------------------------------------------------------------------------------------------------------------------------------
+#Mandla's part
 
 # Importing Packages
 
