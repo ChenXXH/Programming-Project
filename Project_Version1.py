@@ -64,12 +64,17 @@ print(type(close))
 
 #date_list = [date for date in data['Date']]
 
-plot = plt.plot(x, y)
-print(type(plot))     #type: list(), then how to change x/y axis??
-z = np.polyfit(x, y, 1)
-p = np.poly1d(z)
-#plot.set_xticklabels(date_list)   I want to change x-axis, but this method won't work on my computer
+plot = plt.plot(x, y)  
+z = np.polyfit(x, y, 3)   #get coefficents
+p = np.poly1d(z)   # get the formular
+
+dateconv = np.vectorize(dt.datetime.fromtimestamp)  # Not really necessary
+date = dateconv(x)   #Not really necessary
 plt.plot(x, p(x), "r")
+plt.xlabel("Timestamps")
+plt.ylabel("Stock Prices")
+plt.xticks(x, date, rotation = 90)    ####problem is here! dates all crammed together! How to reset the distance of x-axis??
+plt.title("Trendline")
 plt.show()
 
 #--------------------------------------------------------------------------------------------------------------------------------------
