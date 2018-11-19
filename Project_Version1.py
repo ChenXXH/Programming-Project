@@ -11,32 +11,27 @@ yf.pdr_override()
 
 #input data
 df = pdr.get_data_yahoo("MSFT", start = "2018-01-01", end = "2018-6-30")
-print(df.head())
-close = pd.DataFrame(df.Close)
 
+close = pd.DataFrame(df.Close)
+print(close.head())
 
 # did not print out the type of Date
 
-df["ID"] = [i for i in range(len(df.Close))]
-df.reset_index(inplace = True)
-df.set_index("ID", inplace = True)
-
-data = df[["Date", "Close"]]
-print(data.head())
+close.reset_index(inplace = True)  
+data = close[["Date", "Close"]]
 
 #datetime transfer
 	
-ts_list = []
+ts_nplist = np.array([])
 for date in data["Date"]:
 	timestamp = time.mktime(date.timetuple())
-	ts_list.append(timestamp)
+	ts_nplist = np.append(ts_nplist, timestamp)
 
-data["Timestamp"] = ts_list
-
-print(data.head())
-
+data.loc[:,"Timestamp"] = ts_nplist
+e = data["Date"]
 x = data["Timestamp"]
 y = data["Close"]
+
 #descriptive
 def describe_stock(y): 
 	mean = y.mean()
@@ -53,27 +48,30 @@ def describe_stock(y):
 ## visualisation
 
 #raw time-series
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(e, y)
+plt.xlabel("Date")
+plt.ylabel("Stock Prices")
+plt.title("Raw Time-series")
 
-close = close.plot()
-close.set_xlabel("Date")
-close.set_ylabel("Stock Prices")
-close.set_title("Raw Time-series")
-plt.show()
-print(type(close))
 #trendline    #how to solve it
-
-#date_list = [date for date in data['Date']]
-
+plt.subplot(2,1,2)
 plot = plt.plot(x, y)  
 z = np.polyfit(x, y, 3)   #get coefficents
 p = np.poly1d(z)   # get the formular
 
-dateconv = np.vectorize(dt.datetime.fromtimestamp)  # Not really necessary
-date = dateconv(x)   #Not really necessary
+#dtdict = []
+#for i in x:
+#	date = dt.datetime.fromtimestamp(i)
+#	dtdict.append(date.strftime("%Y-%m"))
+
+#dateconv = np.vectorize(dt.datetime.fromtimestamp)  # Not really necessary
+#date = dateconv(x)   #Not really necessary
 plt.plot(x, p(x), "r")
-plt.xlabel("Timestamps")
+plt.xlabel("Timestamp")
 plt.ylabel("Stock Prices")
-plt.xticks(x, date, rotation = 90)    ####problem is here! dates all crammed together! How to reset the distance of x-axis??
+#plt.xticks(x, e, rotation = 90)
 plt.title("Trendline")
 plt.show()
 
