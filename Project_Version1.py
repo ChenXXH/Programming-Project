@@ -243,3 +243,86 @@ results.plot_diagnostics(figsize=(15, 12))			                            # Diagn
 plt.show()
 print("\n", "=" * 100, "\n")
 
+#---------------------------------------------------------------------------------------------------------------------------------
+#Shweta's part
+# 1. random forest with very low accuracy rate 
+import pandas as pd
+import pandas_datareader as pdr
+import matplotlib.pyplot as plt
+from scipy import stats
+import datetime as dt
+import time
+import fix_yahoo_finance as yf 
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
+
+yf.pdr_override()
+
+#input data
+df = pdr.get_data_yahoo("MSFT", start = "2018-01-01", end = "2018-6-30")
+print(df.head())
+data=pd.DataFrame({"High":df.High,"Low":df.Low,"Open":df.Open, "Close":df.Close})    # creating a data frame with cols used for prediction
+print(data.head())                                                                   # just to check everything functions(not part of prog)
+X=data[["High", "Low", "Open", "Close"]]                                             # this will be used for testing and training part
+y=data["Close"]                                                                       # this will be used for testing and training 
+y=pd.factorize(data["Close"])[0]                                                      #converetd 2d into 1d array
+X_train,X_test,y_train, y_test = train_test_split(X,y,test_size=0.3)                  #splitting based on testing and training variable
+clf=RandomForestClassifier(n_estimators=10)                                           #creating the random forest classifier 
+clf.fit(X_train,y_train)                                                               # valuew of X_train will will go y_train
+y_pred=clf.predict(X_test)                                                             #predicting based on test variables
+print("Accuracy :", metrics.accuracy_score(y_test,y_pred))                         #calculating the accuracy rate by comparing testing and predicting variables
+
+
+#2. updated random forest, but end lines are not complete because of error
+import pandas as pd
+import pandas_datareader as pdr
+import matplotlib.pyplot as plt
+from scipy import stats
+import datetime as dt
+import time
+import fix_yahoo_finance as yf 
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
+
+yf.pdr_override()
+
+#input data
+df = pdr.get_data_yahoo("MSFT", start = "2018-01-01", end = "2018-6-30")
+print(df.head())
+data=pd.DataFrame({"High":df.High,"Low":df.Low,"Open":df.Open, "Close":df.Close})
+print(data.head())
+
+X=data[["High", "Low", "Open", "Close"]]
+y=data["Close"]
+print(X.head())
+print(y.head())
+data["is_train"]=np.random.uniform(0,1,len(data)) <= 0.70
+print(data.head())
+train,test = data[data["is_train"]==True], data[data["is_train"]==False]
+print("training data :", len(train))
+print("testing data :", len(test))
+y=pd.factorize(train["Close"])[0]
+print(y)
+clf=RandomForestClassifier(n_jobs=2, random_state=10)
+clf.fit((train),y)
+pred=clf.predict(test)
+print("Accuracy :", metrics.accuracy_score(test,pred))
+
+3. Moving average
+def movingaverage():
+    z=int(input("enter the window for moving average"))    # taking input for the range of moving average
+    x = pd.DataFrame(close.rolling(z).mean())              # calculating moving avg
+    print(x)
+    plot= x.plot()
+    plot.set_xlabel("Date")
+    plot.set_ylabel("Moving average of stock")
+    plot.set_title("moving averages")
+    plt.show()
+
+
