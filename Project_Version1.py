@@ -1,7 +1,7 @@
 import pandas as pd
 import pandas_datareader as pdr
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import matplotlib.dates as mdates   #matplotlib does not use datetime
 from scipy import stats
 import datetime as dt
 import time
@@ -9,23 +9,23 @@ import fix_yahoo_finance as yf
 import numpy as np
 from matplotlib.ticker import MultipleLocator, FuncFormatter
 from mpl_finance import candlestick_ohlc
+import copy
 
 yf.pdr_override()
 
 #input data
-df = pdr.get_data_yahoo("MSFT", start = "2018-01-01", end = "2018-6-30")
-print(df.head())
+#df is the dataframe with Datetime index
+df = pdr.get_data_yahoo("MSFT", start = "2017-06-01", end = "2018-11-19")
+pd.set_option("display.width", None)
+#print(df.head())
 
-#close = pd.DataFrame(df.Close)
-#print(close.head())
-
-# did not print out the type of Date
-
-df.reset_index(inplace = True)  
-
-#datetime transfer
-e = df["Date"]
-y = df["Close"]
+#df1 is the dataframe with non-datetime index
+df1 = copy.deepcopy(df)
+df1.reset_index(inplace = True)
+print(df1.head())
+  
+date = df1["Date"]
+close = df1["Close"]
 
 #descriptive
 def describe_stock(y): 
@@ -43,36 +43,57 @@ def describe_stock(y):
 ## visualisation
 
 #raw time-series
-def time_series(e, y):	
+def time_series(date, close):	
 	ax1 = plt.subplot2grid((2,1), (1,0), rowspan = 1)
 	ax1.grid()
-	plt.plot(e, y)
+	plt.plot(date, close)
 	plt.xlabel("Date")
 	plt.ylabel("Stock Prices")
 	plt.title("Raw Time-series")
 
 #trendline  
-def trendline(e, y):
-	a = e.map(mdates.date2num)   #transfer Date to mdates which is a type can be used to plot
+def trendline(date, close):
+	mdate = date.map(mdates.date2num)   #transfer Date to mdates which is a type can be used to plot
 	ax2 = plt.subplot2grid((2,1), (0,0), rowspan = 1)
 	ax2.grid()
-	plot = plt.plot(a, y)  
-	z = np.polyfit(a, y, 1)   #get coefficents
+	plot = plt.plot(mdate, close)  
+	z = np.polyfit(mdate, close, 1)   #get coefficents
 	p = np.poly1d(z)   # get the formular
-	plt.plot(a, p(a), "r")
+	plt.plot(mdate, p(mdate), "r")
 	#plt.xlabel("Timestamp")
 	plt.ylabel("Stock Prices")
 	plt.title("Trendline")
 	ax2.xaxis_date()   #use it so the graph can show dates, instead of mdates
 	
 
-fig = plt.figure()
-print(time_series(e,y))
-print(trendline(e,y))
-fig.autofmt_xdate()  #to beautify the fig
-#plt.legend()
+# Candlestick
+def candlestick(window):    #window can be chosen according to the interest of users
+	fig2 = plt.figure()
+	#resample can shrink the dataset significantly
+	df_ohlc = df["Adj Close"].resample(window).ohlc()    #get the open, high, low, close price date of the windows (e.g. "10D")
+	df_volume = df["Volume"].resample(window).sum()   # Note that df_ohlc and df_volume can only be valid only with DatetimeIndex
+	df_ohlc.reset_index(inplace = True)  #convert datetimeIndex into a pandas.series
+	df_ohlc["Date"]= df_ohlc["Date"].map(mdates.date2num) # convert datetime series into mdate format
+	ax3 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
+	ax4 = plt.subplot2grid((6,1), (5,0), rowspan = 2, colspan = 1, sharex = ax3)
+	candlestick_ohlc(ax3, df_ohlc.values, width = 2, colorup = 'g')
+	ax4.fill_between(df_volume.index.map(mdates.date2num), df_volume.values, 0) #fill_between(x, y)  x is index datetime (convert into mdate)
+	ax4.xaxis_date()  #convert mdates in a_axis into datetime again, for user-friendly
+	plt.title("Candlestick")
+	fig2.autofmt_xdate()
+	plt.show()
+
+
+
+# show both time-series and trendline
+fig1 = plt.figure()
+print(time_series(date,close))
+print(trendline(date,close))
+fig1.autofmt_xdate()  #to beautify the fig
 plt.show()
 
+
+print(candlestick("10D"))
 
 #--------------------------------------------------------------------------------------------------------------------------------------
 #Mandla's part
