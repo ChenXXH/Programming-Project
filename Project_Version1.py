@@ -1,36 +1,31 @@
 import pandas as pd
 import pandas_datareader as pdr
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from scipy import stats
 import datetime as dt
 import time
 import fix_yahoo_finance as yf 
 import numpy as np
+from matplotlib.ticker import MultipleLocator, FuncFormatter
+from mpl_finance import candlestick_ohlc
 
 yf.pdr_override()
 
 #input data
 df = pdr.get_data_yahoo("MSFT", start = "2018-01-01", end = "2018-6-30")
+print(df.head())
 
-close = pd.DataFrame(df.Close)
-print(close.head())
+#close = pd.DataFrame(df.Close)
+#print(close.head())
 
 # did not print out the type of Date
 
-close.reset_index(inplace = True)  
-data = close[["Date", "Close"]]
+df.reset_index(inplace = True)  
 
 #datetime transfer
-	
-ts_nplist = np.array([])
-for date in data["Date"]:
-	timestamp = time.mktime(date.timetuple())
-	ts_nplist = np.append(ts_nplist, timestamp)
-
-data.loc[:,"Timestamp"] = ts_nplist
-e = data["Date"]
-x = data["Timestamp"]
-y = data["Close"]
+e = df["Date"]
+y = df["Close"]
 
 #descriptive
 def describe_stock(y): 
@@ -48,32 +43,36 @@ def describe_stock(y):
 ## visualisation
 
 #raw time-series
-plt.figure()
-plt.subplot(2,1,1)
-plt.plot(e, y)
-plt.xlabel("Date")
-plt.ylabel("Stock Prices")
-plt.title("Raw Time-series")
+def time_series(e, y):	
+	ax1 = plt.subplot2grid((2,1), (1,0), rowspan = 1)
+	ax1.grid()
+	plt.plot(e, y)
+	plt.xlabel("Date")
+	plt.ylabel("Stock Prices")
+	plt.title("Raw Time-series")
 
-#trendline    #how to solve it
-plt.subplot(2,1,2)
-plot = plt.plot(x, y)  
-z = np.polyfit(x, y, 3)   #get coefficents
-p = np.poly1d(z)   # get the formular
+#trendline  
+def trendline(e, y):
+	a = e.map(mdates.date2num)   #transfer Date to mdates which is a type can be used to plot
+	ax2 = plt.subplot2grid((2,1), (0,0), rowspan = 1)
+	ax2.grid()
+	plot = plt.plot(a, y)  
+	z = np.polyfit(a, y, 1)   #get coefficents
+	p = np.poly1d(z)   # get the formular
+	plt.plot(a, p(a), "r")
+	#plt.xlabel("Timestamp")
+	plt.ylabel("Stock Prices")
+	plt.title("Trendline")
+	ax2.xaxis_date()   #use it so the graph can show dates, instead of mdates
+	
 
-#dtdict = []
-#for i in x:
-#	date = dt.datetime.fromtimestamp(i)
-#	dtdict.append(date.strftime("%Y-%m"))
-
-#dateconv = np.vectorize(dt.datetime.fromtimestamp)  # Not really necessary
-#date = dateconv(x)   #Not really necessary
-plt.plot(x, p(x), "r")
-plt.xlabel("Timestamp")
-plt.ylabel("Stock Prices")
-#plt.xticks(x, e, rotation = 90)
-plt.title("Trendline")
+fig = plt.figure()
+print(time_series(e,y))
+print(trendline(e,y))
+fig.autofmt_xdate()  #to beautify the fig
+#plt.legend()
 plt.show()
+
 
 #--------------------------------------------------------------------------------------------------------------------------------------
 #Mandla's part
