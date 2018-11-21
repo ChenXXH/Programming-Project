@@ -110,6 +110,23 @@ def moving_average(window):
 
 print(moving_average(7))
 
+def ExpMovingAverage(values, window):
+	fig3 = plt.figure()
+	weights = np.exp(np.linspace(-1.,0.,window))
+	weights /= weights.sum()
+	a= np.convolve(values, weights,mode="full")[:len(close)]
+	a[:window]= a[window]
+	ax7 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
+	ax8 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax7)
+	ax7.plot(df.index, df["Adj Close"])
+	ax7.plot(df.index, a)
+	ax8.bar(df.index, df["Volume"])
+	plt.title("Exponential Moving Average")
+	#fig3.autofmt_xdate()
+	plt.show()
+	
+print(ExpMovingAverage(close, 10))
+
 #--------------------------------------------------------------------------------------------------------------------------------------
 #Mandla's part
 
