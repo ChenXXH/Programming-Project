@@ -39,7 +39,6 @@ def describe_stock(y):
 	return "Standard variation: ", std
 	return "Coefficient of variation: %.2f%%" % (std/mean*100)   #CV is defined as the ratio of the sd to the mean  
 
-
 ## visualisation
 
 #raw time-series
@@ -64,7 +63,6 @@ def trendline(date, close):
 	plt.ylabel("Stock Prices")
 	plt.title("Trendline")
 	ax2.xaxis_date()   #use it so the graph can show dates, instead of mdates
-	
 
 # Candlestick
 def candlestick(window):    #window can be chosen according to the interest of users
@@ -83,15 +81,12 @@ def candlestick(window):    #window can be chosen according to the interest of u
 	fig2.autofmt_xdate()
 	plt.show()
 
-
-
 # show both time-series and trendline
 fig1 = plt.figure()
 print(time_series(date,close))
 print(trendline(date,close))
 fig1.autofmt_xdate()  #to beautify the fig
 plt.show()
-
 
 print(candlestick("10D"))
 
@@ -130,9 +125,8 @@ print(ExpMovingAverage(close, 10))
 #--------------------------------------------------------------------------------------------------------------------------------------
 #Mandla's part
 
-# Importing Packages
-
 import pandas as pd
+import numpy as np
 import statsmodels.api as sm
 from os.path import exists
 import matplotlib.pyplot as plt
@@ -143,155 +137,91 @@ import warnings
 import itertools
 import math
 import datetime as dt
+from pandas_datareader import data as pdr
+import fix_yahoo_finance as yf
+import datetime
 
-# Plot Styles
+def setDateIndex(start_date, dataframe):                                        # Resetting Index as a Date
+	dataframe.reset_index(inplace = True, drop = True)
+	dataframe["Date"] = dataframe.index
+
+	j = dataframe.index[1]
+	isSuccess = False
+	for i in dataframe.index:
+
+		isSuccess = False
+		while not isSuccess:
+			add_date = (start_date + datetime.timedelta(j)).weekday()
+			if add_date < 5:
+				dataframe.loc[i, "Date"] = start_date + datetime.timedelta(j)
+				j += 1
+				isSuccess = True
+			else:
+				j += 1
+
+	dataframe.set_index('Date',inplace=True, drop=True)
+	return dataframe
+
+def returnStartDateAsNum(dt, x):                                                # Converting Dates to Intergers
+	start_date = x[0]
+	days = 0
+	while(not start_date == dt):
+		if start_date.weekday() < 5:
+			days += 1
+		start_date += datetime.timedelta(1)
+
+	return days
 
 plt.style.use('fivethirtyeight')
+yf.pdr_override()
 
-# Opening Statement 
+# Importing the Data                                                            # Importation of Data from Yahoo
 
-Today = dt.date.today()
+df = pdr.get_data_yahoo('MMM', start='2018-01-01', end='2018-11-01')
+df.reset_index(inplace = True)
 
-print(f"""\n\nThis program is for a daily series as at {Today}, the price of a stock used is the
-closing price, which is the last transaction price of the stock in a trading day.\n""")
+x = [i.to_pydatetime() for i in df["Date"]]                                     # Creating x vector (Dates)
+y = pd.Series(df["Close"].values, index=x).to_frame()                           # Creating y vector (Closing Prices)
 
-# The Menu for the client
-
-print("=" * 100, "\n")
-
-print("Please advise your preferred form of loading data? :\n")
-print("Option :1 - Loading the data through Copy and Paste. \nOption :2 - Loading the data\
- through a file. \nOption :3 - Loading the Data from a website. \nOption :4 - To quit).", end='\n')
-DLoad = int(input('\n       :  > .....'))
-
-print("\n", "=" * 100, "\n")
-  
-while DLoad != 4:
-        
-    if DLoad == 1       :
-              
-        print("\nPlease copy the data in your file now & Key 1 to confirm having copied your file", end='\n')
-        DLoad = int(input('\n       :  > .....'))
-                
-        mydata = pd.read_clipboard(header=0, parse_dates=[0], index_col=0, squeeze=True)
-        print("\nThank You, This is the 1st few lines of your data\n")
-        print(mydata.head())
-        DLoad = int(input('\nInput 4 to affirm completion   :  > .....'))
-            
-    elif DLoad == 2     :
-                
-        #FName = ("daily_adjusted_MSFT")
-        FName = input("\nPlease state file name : ... ")                      # TODO Remove when going on production
-                
-        if exists(FName) == False :                                             # To test availability of Data 
-            print(f"\nConfirmed, Your File is Available")
-        else                        :
-            print("\nWe do not have data on this File, Please key in an alternative file", end = "")
-            FName = input("\nPlease state file name : ... ")   
-                
-        mydata = pd.read_csv(FName + ".csv", header=0, parse_dates=['timestamp'], squeeze=True)
-        
-        print("\nThank You, This is the 1st few lines of your data\n")
-        print(mydata.head())
-        DLoad = int(input('\nInput 4 to affirm completion   :  > .....'))
-            
-    elif DLoad == 3     :
-                
-        Dweb = input("\nPlease state file location : ... ")
-        mydata = pd.read_csv(Dweb + ".csv", header=0, parse_dates=[0], index_col=0, squeeze=True)
-        print("\nThank You, This is the 1st few lines of your data\n")
-        print(mydata.head())
-        DLoad = int(input('\nInput 4 to affirm completion   :  > .....'))
-    
-    elif DLoad == 4     : break                                                 # TODO
-    
-print("\n", "=" * 100, "\n")
-
-# Data Types 
-
-print("\n", "=" * 100, "\n")
-
-print("\nThe types of data you have per column is : \n")
-print(mydata.dtypes)                                                           # To check data types
-
-# Index Slicing 
-
-idx = pd.IndexSlice
-#mydat = mydata.loc[idx['2018-01-11':'2018-05-11'], :]
-#mydata["timestamp"] = mydata.index.astype("datetime64[ns]")
-#print(mydat)
-# mydat.loc[idx['2018-01-11']:]                                                 # All Data until 1 Nov 2018 (End Date)
-
-# For capturing the start date and End dates                                    # TODO
-
-#df = 0
-#df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3],'day': [4, 5]})
-#pd.to_datetime(df[['year', 'month', 'day']])
-#pd.to_datetime(df)
-
-# Descriptive Stats of the Data 
-
-print("\nThe descriptive statistics of your data : \n")
-mydat = mydata.close[0:len(mydata)]
-
-print(mydat.describe(), end = "")	                                             # To get descriptive stats
-print("\n")
-print("\n", "=" * 100, "\n")
-
-## Max and Mix Rows 
-
-print("\nThis is your maximum Price from the data : ", mydata.close.max())
-
-Pmax = mydata.close.max()
-print("\nThe complete details for the highest price point", mydata.iloc[np.where(mydata.close == Pmax)])
-
-print("\nThis is your minimum Price from the data : ", mydata.close.min())
-
-Pmin = mydata.close.min()
-print("The complete details for the lowest price point", mydata.iloc[np.where(mydata.close == Pmin)])
-print("\n", "=" * 100, "\n")
-
-## Plotting the Data                  TODO Review
-
-print('\nThe Graph of Your Data Looks Like\n')
-plot = mydata.close.plot(figsize = (15,6))
-plot.set_xlabel("Days")
-plot.set_ylabel("Closing Share Price")
-plot.set_title("Share Price Reported per Day")
-plot.get_figure().savefig("Closing_Price.pdf")
-plt.show()
-print("\n", "=" * 100, "\n")
-
-#
-#mydata      = mydata.set_index(pd.DatetimeIndex(mydata['timestamp']))
-y           = mydata.close[0:len(mydata)]
-##my_start    = pd.to_datetime('2018-07-01')
-#my_start    = ('2018-07-01')
-#my_start
-#print(type(my_start))
-#
-x           =  mydata["timestamp"].astype("datetime64[ns]")
-
-## Linear Regression                    TODO Review
-
-print('\nA Liear Regression Params of Your Data Looks Like\n')
-y = mydata.close[:]
-x = range(len(mydata))
-x = sm.add_constant(x)
-results = sm.OLS(y,x).fit()
-print('\nThese are the Result Parameters\n')
-print(results.params,"\n")
-print("\n", "=" * 100, "\n")
-
-# Running an ARIMA Model
+# Running an ARIMA Model - See Word Document for additional Context
 
 print("\nRunning an Autoregressive Model - 'ARIMA'")
-model = sm.tsa.statespace.SARIMAX(y, order=(1, 1, 1))    	                # Running an ARIMA (1, 1, 1)
-results = model.fit()                                                           # Fitting 
-print(results.summary().tables[1]) 				                                # To get the table of coefficients
-results.plot_diagnostics(figsize=(15, 12))			                            # Diagnostic plot
-plt.show()
+model = sm.tsa.statespace.SARIMAX(y, trend='n', order=(2,1,2), seasonal_order=(0,1,1,12))
+results = model.fit(disp = 0)                                                   # Fitting the model
+print(results.summary().tables[1]) 				                # Parameters
+results.plot_diagnostics(figsize=(15, 12))			                # Diagnostic plot - visual confirmation of fit
+plt.show()                                                                      # Remove comment TODO
+
 print("\n", "=" * 100, "\n")
+
+user_enter_start_date = datetime.datetime(2018, 4, 1)                           # Forecast Start Date
+user_enter_end_date   = datetime.datetime(2019, 2, 1)                           # Target Prediction Date
+
+start_d_num           = returnStartDateAsNum(user_enter_start_date, x)          # See 2 functions above
+end_d_num             = returnStartDateAsNum(user_enter_end_date, x)
+
+# Forecasting / Prediction
+
+pred = results.get_prediction(start= start_d_num, end=end_d_num, dynamic=False) # Prediction function using the speced model above
+pred_ci = pred.conf_int()                                                       # Prediction confidence Interval
+
+pred_ci   = setDateIndex(x[start_d_num], pred_ci)
+pred_mean = setDateIndex(x[start_d_num], pred.predicted_mean.to_frame())
+
+ # Training Data / Prediction Plot
+
+ax = y.plot(label='observed', figsize=(20, 15))
+pred_mean.plot(ax=ax, label='Forecast')
+ax.fill_between(pred_ci.index, pred_ci.iloc[:, 0], pred_ci.iloc[:, 1], color='k', alpha=.25)
+ax.set_title("Plotting Observed against Forecast")
+ax.set_xlabel('Date')
+ax.set_ylabel('Share Returns')
+plt.legend()
+plt.show()
+
+# Predicted Price                                                               # Predicted Price at end of forecast period
+
+print("Predicted Price is : ", pred_mean.iloc[-1])
 
 #---------------------------------------------------------------------------------------------------------------------------------
 #Shweta's part
