@@ -64,6 +64,26 @@ def trendline(date, close):
 	plt.title("Trendline")
 	ax2.xaxis_date()   #use it so the graph can show dates, instead of mdates
 
+# stock comparison
+def comparison(ticker, startdate, enddate):
+	df2 = pdr.get_data_yahoo(ticker, start = startdate, end = enddate)
+	df2.reset_index(inplace = True)
+	x1 = df2["Date"]
+	y1 = df2["Close"]
+	fig= plt.figure()
+	ax1 = fig.add_subplot(111)
+	ax1.plot(x1, y1, color = "b")
+	ax1.set_ylabel("Y values for {}".format(ticker), color = "b")
+	ax2 = ax1.twinx()
+	ax2.plot(x1, close, color = "g")
+	ax2.set_ylabel("Y values for MSFT", color = "g")
+	ax1.set_title("Stock Price comparison between MSFT and {}".format(ticker))
+	fig.autofmt_xdate()
+	plt.legend()
+	plt.show()
+
+print(comparison("TSLA", "2017-06-01", "2018-11-19"))
+
 # Candlestick
 def candlestick(window):    #window can be chosen according to the interest of users
 	fig2 = plt.figure()
