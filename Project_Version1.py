@@ -98,7 +98,7 @@ print(candlestick("10D"))
 #Moving average
 def moving_average(window):
 	fig3 = plt.figure()
-	df["{}ma".format(str(window))] = df["Adj Close"].rolling(window = window, min_periods = 0).mean()
+	df["{}ma".format(str(window))] = df["Close"].rolling(window = window, min_periods = 0).mean()
 	#df.dropna(inplace = True)
 	ax5 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
 	ax6 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax5)
