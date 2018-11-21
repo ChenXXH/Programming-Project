@@ -357,5 +357,14 @@ def movingaverage():
     plot.set_ylabel("Moving average of stock")
     plot.set_title("moving averages")
     plt.show()
+# 4 exponential avg			
+def ema(window):
+	weights = np.exp(np.linspace(-1.,0.,window))
+	weights /= weights.sum()
+	a= np.convolve(close.Close,weights,mode="full")[:len(close)]
+	a[:window]= a[window]
+	return a
 
+
+print(ema(5))
 
