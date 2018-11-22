@@ -242,6 +242,80 @@ plt.show()
 # Predicted Price                                                               # Predicted Price at end of forecast period
 
 print("Predicted Price is : ", pred_mean.iloc[-1])
+----------------------------------------------------------------------------------------------------------------------------------------
+# MACD Graph and Signal Line 
+
+import pandas as pd
+import pandas_datareader as pdr
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates   #matplotlib does not use datetime
+from scipy import stats
+import datetime as dt
+import time
+import fix_yahoo_finance as yf 
+import numpy as np
+from matplotlib.ticker import MultipleLocator, FuncFormatter
+import copy
+import matplotlib
+import urllib.request, urllib.error, urllib.parse
+import datetime
+import matplotlib.ticker as mticker
+import pylab
+matplotlib.rcParams.update({'font.size': 9})
+
+yf.pdr_override()
+
+#input data
+
+df = pdr.get_data_yahoo("MSFT", start = "2017-06-01", end = "2018-11-19")
+pd.set_option("display.width", None)
+
+#df1 is the dataframe with non-datetime index
+df1 = copy.deepcopy(df)
+df1.reset_index(inplace = True)
+  
+date = df1["Date"]
+close = df1["Close"]
+
+# MACD
+
+def ExpMovingAverage(values, window):
+    weights = np.exp(np.linspace(-1.,0.,window))
+    weights /= weights.sum()
+    a= np.convolve(values, weights,mode="full")[:len(close)]
+    a[:window]= a[window]
+    return a 
+
+def computeMACD(x, slow=26, fast=12):
+    """
+    compute the MACD (Moving Average Convergence/Divergence) using a fast and slow exponential moving avg'
+    return value is emaslow, emafast, macd which are len(x) arrays
+    """
+    emaslow = ExpMovingAverage(close, slow)
+    emafast = ExpMovingAverage(close, fast)
+    return emaslow, emafast, emafast - emaslow
+
+# Plot
+
+ax9 = plt.subplot2grid((1,1), (0,0), rowspan=1, colspan=4)
+
+fillcolor = '#00ffe8'
+nslow = 26
+nfast = 12
+nema  = 9
+
+emaslow, emafast, macd = computeMACD(close)
+ema9 = ExpMovingAverage(macd, nema)
+
+SP = len(date)
+ax9.plot(date, macd, lw=2)
+ax9.plot(date, ema9, color='r', lw=1)               # Signal Line
+ax9.tick_params(axis='x', colors='b')               # MACD Line 
+ax9.tick_params(axis='y', colors='b')
+plt.ylabel('MACD', color='b')
+for label in ax9.xaxis.get_ticklabels():
+    label.set_rotation(45)
+plt.show()
 
 #---------------------------------------------------------------------------------------------------------------------------------
 #Shweta's part
