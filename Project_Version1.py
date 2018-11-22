@@ -125,9 +125,9 @@ def moving_average(window):
 
 print(moving_average(7))
 
+# exponential weighted moving average
 def ExpMovingAverage(values, window):
-	fig3 = plt.figure()
-	weights = np.exp(np.linspace(-1.,0.,window))
+	weights = np.exp(np.linspace(-1., 0., window))
 	weights /= weights.sum()
 	a= np.convolve(values, weights,mode="full")[:len(close)]
 	a[:window]= a[window]
@@ -136,10 +136,12 @@ def ExpMovingAverage(values, window):
 	ax7.plot(df.index, df["Adj Close"])
 	ax7.plot(df.index, a)
 	ax8.bar(df.index, df["Volume"])
-	plt.title("Exponential Moving Average")
-	#fig3.autofmt_xdate()
+	ax7.set_title("Exponential Moving Average")
+	ax7.set_ylabel("Stock Prices")
+	plt.xticks(rotation = 45)
 	plt.show()
-	
+	return a
+
 print(ExpMovingAverage(close, 10))
 #weighted average
 def w(weights):
