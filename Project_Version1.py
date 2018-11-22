@@ -334,4 +334,20 @@ def ema(window):
 
 
 print(ema(5))
+#macd
+def macd(value, lower=26, upper=12):
+	emaupper= ExpMovingAverage(value, upper)
+	emalower= ExpMovingAverage(value, lower)
+	a= emaupper
+	b= emalower
+	c= emaupper - emalower
+	fig4= plt.figure()
+	ax2= plt.subplot2grid((6,4),(5,0), rowspan=1, colspan=4, axisbg="#07000d")
+	ax2.spines["bottom"].setcolor("#5998ff")
+	ax2.spines["top"].setcolor("#5998ff")
+	ax2.spines["left"].setcolor("#5998ff")
+	ax2.spines["right"].setcolor("#5998ff")
+	ax2.tick_params(axis ="x",colors="w")
+	ax2.tick_params(axis ="y",colors="w")
+	    
 
