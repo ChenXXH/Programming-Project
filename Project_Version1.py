@@ -141,6 +141,27 @@ def ExpMovingAverage(values, window):
 	plt.show()
 	
 print(ExpMovingAverage(close, 10))
+#weighted average
+def w(weights):
+	def s(close):
+		return (close*weights).mean()
+	return s
+
+def wma(value):	
+	length=len(value)
+	r=np.random.random(size=length)
+	weights=np.array([-1,2])
+	a=value.rolling(window=2).apply(w(weights), raw=True)
+	print(a)
+	fig4= plt.figure()
+	ax5 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
+	ax6 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax5)
+	ax5.plot(df.index, df["Close"])
+	ax5.plot(df.index,a)
+	ax6.bar(df.index, df["Volume"])
+	plt.show()
+
+print(wma(close))
 
 #--------------------------------------------------------------------------------------------------------------------------------------
 #Mandla's part
