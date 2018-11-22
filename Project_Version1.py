@@ -349,5 +349,28 @@ def macd(value, lower=26, upper=12):
 	ax2.spines["right"].setcolor("#5998ff")
 	ax2.tick_params(axis ="x",colors="w")
 	ax2.tick_params(axis ="y",colors="w")
+	
+#wma
+
+def wma():
+    weights=pd.DataFrame(df.High - df.Low)
+    print(len(weights))
+    sign =pd.DataFrame(df.Open-df.Close)
+    print(len(sign))
+    finalweight=pd.DataFrame(weights*sign)
+    finalweight /= weights.sum()
+    print(len(finalweight))
+    p= pd.DataFrame(df.Close*finalweight) 
+    df[p]= p
+    print(len(p))
+    fig4= plt.figure()
+    ax5 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
+    ax6 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax5)
+    ax5.plot(df.index, df["Close"])
+    ax5.plot(df.index,p)
+    ax6.bar(df.index, df["Volume"])
+    plt.show()
+
+print(wma())  
 	    
 
