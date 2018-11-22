@@ -141,73 +141,7 @@ def ExpMovingAverage(values, window):
 	plt.show()
 	
 print(ExpMovingAverage(close, 10))
-#---------------------------------------------------New edited part--------------------------------------------------------------------
-def time_series(date, close):	
-	ax1 = plt.subplot2grid((6,1), (0,0), rowspan = 4)
-	ax2 = plt.subplot2grid((6,1), (4,0), rowspan = 2, sharex = ax1)  ##!!
-	ax1.grid()
-	ax2.bar(df.index, df["Volume"])  ##!!
-	ax1.plot(date, close)  
-	ax1.set_ylabel("Stock Prices")
-	ax1.set_title("Raw Time-series")  ##!!
-	plt.xticks(rotation = 45)   ##!!
-	plt.show()
-	
-print(time_series(date, close))
 
-def trendline(date, close):
-	mdate = date.map(mdates.date2num)   #transfer Date to mdates which is a type can be used to plot
-	ax1 = plt.subplot2grid((6,1), (0,0), rowspan = 4)
-	ax2 = plt.subplot2grid((6,1), (4,0), rowspan = 2, sharex = ax1)
-	ax1.grid()
-	ax2.bar(df.index, df["Volume"])
-	ax1.plot(mdate, close)  
-	z = np.polyfit(mdate, close, 1)   #get coefficents
-	p = np.poly1d(z)   # get the formular
-	ax1.plot(mdate, p(mdate), "r")
-	#plt.xlabel("Timestamp")
-	ax1.set_ylabel("Stock Prices")
-	ax1.set_title("Trendline")
-	ax1.xaxis_date()   #use it so the graph can show dates, instead of mdates
-	plt.xticks(rotation = 45)   ##!!
-	plt.show()
-
-print(trendline(date, close))
-
-def candlestick(window):    #window can be chosen according to the interest of users
-	#resample can shrink the dataset significantly
-	df_ohlc = df["Adj Close"].resample(window).ohlc()    #get the open, high, low, close price date of the windows (e.g. "10D")
-	df_volume = df["Volume"].resample(window).sum()   # Note that df_ohlc and df_volume can only be valid only with DatetimeIndex
-	df_ohlc.reset_index(inplace = True)  #convert datetimeIndex into a pandas.series
-	df_ohlc["Date"]= df_ohlc["Date"].map(mdates.date2num) # convert datetime series into mdate format
-	ax3 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
-	ax4 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax3)  ##!!
-	candlestick_ohlc(ax3, df_ohlc.values, width = 2, colorup = 'g')
-	ax4.fill_between(df_volume.index.map(mdates.date2num), df_volume.values, 0) #fill_between(x, y)  x is index datetime (convert into mdate)
-	ax4.xaxis_date()  #convert mdates in a_axis into datetime again, for user-friendly
-	ax3.set_title("Candlestick")  ##!!
-	ax3.set_ylabel("Stock Prices")  ##!
-	ax4.set_ylabel("Volume")  ##!!
-	ax3.set_xlabel("Date")
-	plt.xticks(rotation = 45)
-	plt.show()
-
-print(candlestick("10D"))
-
-def moving_average(window):
-	df["{}ma".format(str(window))] = df["Adj Close"].rolling(window = window, min_periods = 0).mean()
-	#df.dropna(inplace = True)
-	ax5 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
-	ax6 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax5)
-	ax5.plot(df.index, df["Adj Close"])
-	ax5.plot(df.index, df["{}ma".format(str(window))])
-	ax6.bar(df.index, df["Volume"])
-	ax5.set_title("Moving Average")  ##!!
-	ax5.set_ylabel("Stock Prices")  ##!!
-	plt.xticks(rotation = 45)  ##!!
-	plt.show()
-
-print(moving_average(7))
 #--------------------------------------------------------------------------------------------------------------------------------------
 #Mandla's part
 
@@ -492,25 +426,25 @@ def macd(value, lower=26, upper=12):
 	
 #wma
 
-def wma():
-    weights=pd.DataFrame(df.High - df.Low)
-    print(len(weights))
-    sign =pd.DataFrame(df.Open-df.Close)
-    print(len(sign))
-    finalweight=pd.DataFrame(weights*sign)
-    finalweight /= weights.sum()
-    print(len(finalweight))
-    p= pd.DataFrame(df.Close*finalweight) 
-    df[p]= p
-    print(len(p))
-    fig4= plt.figure()
-    ax5 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
-    ax6 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax5)
-    ax5.plot(df.index, df["Close"])
-    ax5.plot(df.index,p)
-    ax6.bar(df.index, df["Volume"])
-    plt.show()
+	
+def w(weights):
+	def s(close):
+		return (close*weights).mean()
+	return s
 
-print(wma())  
+def wma(value):	
+	length=len(value)
+	close["r"]= np.random.random(size=length)
+	weights=np.array([-1,2])
+	a=value.rolling(window=2).apply(w(weights), raw=True)
+	fig4= plt.figure()
+	ax5 = plt.subplot2grid((6,1), (0,0), rowspan = 4, colspan = 1)
+	ax6 = plt.subplot2grid((6,1), (4,0), rowspan = 2, colspan = 1, sharex = ax5)
+	ax5.plot(df.index, df["Close"])
+	ax5.plot(df.index,a)
+	ax6.bar(df.index, df["Volume"])
+	plt.show()
+
+print(wma(close)) 
 	    
 
