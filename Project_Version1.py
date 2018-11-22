@@ -127,7 +127,7 @@ print(moving_average(7))
 
 # exponential weighted moving average
 def ExpMovingAverage(values, window):
-	weights = np.exp(np.linspace(-1., 0., window))
+	weights = np.exp(np.linspace(-1., 0., window))  #evenly divide numbers between -1 and 0
 	weights /= weights.sum()
 	a= np.convolve(values, weights,mode="full")[:len(close)]
 	a[:window]= a[window]
